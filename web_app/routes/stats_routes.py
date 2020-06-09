@@ -18,47 +18,48 @@ def predict():
     screen_name_b = request.form["screen_name_b"]
     tweet_text = request.form["tweet_text"]
 
-    #print("-----------------")
-    #print("FETCHING TWEETS FROM THE DATABASE...")
-    ## todo: wrap in a try block in case the user's don't exist in the database
-    #user_a = User.query.filter(User.screen_name == screen_name_a).one()
-    #user_b = User.query.filter(User.screen_name == screen_name_b).one()
-    #user_a_tweets = user_a.tweets
-    #user_b_tweets = user_b.tweets
-    ##user_a_embeddings = [tweet.embedding for tweet in user_a_tweets]
-    ##user_b_embeddings = [tweet.embedding for tweet in user_b_tweets]
-    #print("USER A", user_a.screen_name, len(user_a.tweets))
-    #print("USER B", user_b.screen_name, len(user_b.tweets))
+    print("-----------------")
+    print("FETCHING TWEETS FROM THE DATABASE...")
+    # todo: wrap in a try block in case the user's don't exist in the database
+    user_a = User.query.filter_by(screen_name=screen_name_a).one()
+    user_b = User.query.filter_by(screen_name=screen_name_b).one()
+    user_a_tweets = user_a.tweets
+    user_b_tweets = user_b.tweets
+    #user_a_embeddings = [tweet.embedding for tweet in user_a_tweets]
+    #user_b_embeddings = [tweet.embedding for tweet in user_b_tweets]
+    print("USER A", user_a.screen_name, len(user_a.tweets))
+    print("USER B", user_b.screen_name, len(user_b.tweets))
+    # consider returning a warning message / redirect if the data isn't in the database
 
-    #print("-----------------")
-    #print("TRAINING THE MODEL...")
-    #embeddings = []
-    #labels = []
-    #for tweet in user_a_tweets:
-    #    labels.append(user_a.screen_name)
-    #    embeddings.append(tweet.embedding)
-#
-    #for tweet in user_b_tweets:
-    #    labels.append(user_b.screen_name)
-    #    embeddings.append(tweet.embedding)
-#
-    #classifier = LogisticRegression() # for example
-    #classifier.fit(embeddings, labels)
+    print("-----------------")
+    print("TRAINING THE MODEL...")
+    embeddings = []
+    labels = []
+    for tweet in user_a_tweets:
+        labels.append(user_a.screen_name)
+        embeddings.append(tweet.embedding)
 
-    #print("-----------------")
-    #print("MAKING A PREDICTION...")
-    ##result_a = classifier.predict([user_a_tweets[0].embedding])
-    ##result_b = classifier.predict([user_b_tweets[0].embedding])
-#
-    #basilica_api = basilica_api_client()
-    #example_embedding = basilica_api.embed_sentence(tweet_text)
-    #result = classifier.predict([example_embedding])
-    ##breakpoint()
+    for tweet in user_b_tweets:
+        labels.append(user_b.screen_name)
+        embeddings.append(tweet.embedding)
+
+    classifier = LogisticRegression() # for example
+    classifier.fit(embeddings, labels)
+
+    print("-----------------")
+    print("MAKING A PREDICTION...")
+    #result_a = classifier.predict([user_a_tweets[0].embedding])
+    #result_b = classifier.predict([user_b_tweets[0].embedding])
+    #breakpoint()
+
+    example_embedding = basilica_api_client.embed_sentence(tweet_text, model="twitter")
+    result = classifier.predict([example_embedding])
+    #breakpoint()
 
     #return jsonify({"message": "RESULTS", "most_likely": result[0]})
     return render_template("prediction_results.html",
         screen_name_a=screen_name_a,
         screen_name_b=screen_name_b,
         tweet_text=tweet_text,
-        screen_name_most_likely="TODO" # result[0]
+        screen_name_most_likely=result[0]
     )
